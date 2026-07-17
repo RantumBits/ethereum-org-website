@@ -1,15 +1,14 @@
 "use client"
-
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 
 import type { Story } from "@/lib/types"
 
 import Twitter from "@/components/icons/twitter.svg"
 import { Button, ButtonLink } from "@/components/ui/buttons/Button"
+import { Card, CardContent } from "@/components/ui/card"
 
 import { cn } from "@/lib/utils/cn"
-
-import { useTranslation } from "@/hooks/useTranslation"
 
 type StoryCardProps = {
   story: Story
@@ -20,21 +19,34 @@ type StoryCardProps = {
    * inline height change would reflow every column. Defaults to true.
    */
   expandable?: boolean
+  /**
+   * When false, the story date is hidden. Defaults to true (shown on the
+   * /10years page); /stories opts out.
+   */
+  showDate?: boolean
 }
 
 /**
- * A single community story card with a flip toggle (English <-> original
+ * A single community story card with a flip toggle (localized <-> original
  * language) and an optional read-more expander. Self-contained state so it
  * can be dropped into any layout (single-column list on /10years, masonry on
  * /stories).
  */
-const StoryCard = ({ story, className, expandable = true }: StoryCardProps) => {
-  const { t } = useTranslation("page-10-year-anniversary")
+const StoryCard = ({
+  story,
+  className,
+  expandable = true,
+  showDate = true,
+}: StoryCardProps) => {
+  const t = useTranslations("component-story-card")
   const [isFlipped, setIsFlipped] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [isFading, setIsFading] = useState(false)
 
-  const hasOriginal = !!story.storyOriginal
+  // No flip when the localized copy matches the original (e.g. an English
+  // submission viewed in English, or a locale still falling back to English)
+  const hasOriginal =
+    !!story.storyOriginal && story.storyOriginal !== story.story
   const showOriginal = isFlipped && hasOriginal
 
   const handleFlip = () => {
@@ -46,14 +58,9 @@ const StoryCard = ({ story, className, expandable = true }: StoryCardProps) => {
   }
 
   return (
-    <div
-      className={cn(
-        "relative w-full rounded-2xl border bg-background p-6 transition-all duration-500",
-        hasOriginal && "cursor-pointer",
-        className
-      )}
-    >
-      <div
+    <Card variant="nested" className={cn("border", className)}>
+      <CardContent
+        spacing="none"
         className={cn(
           "transition-opacity duration-200",
           isFading ? "opacity-0" : "opacity-100"
@@ -62,12 +69,12 @@ const StoryCard = ({ story, className, expandable = true }: StoryCardProps) => {
         <div className="mb-4 flex flex-row items-center justify-between">
           <div className="flex flex-row items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-hover">
-              <p aria-hidden className="font-bold">
+              <p aria-hidden className="font-bold text-body-inverse">
                 {story.name?.slice(0, 1) || "?"}
               </p>
             </div>
             <div>
-              <p className="text-md font-bold">{story.name}</p>
+              <p className="text-md font-bold text-body">{story.name}</p>
               <p className="text-sm text-body-medium">{story.country}</p>
             </div>
           </div>
@@ -89,11 +96,11 @@ const StoryCard = ({ story, className, expandable = true }: StoryCardProps) => {
           <div className="flex flex-col">
             <p
               className={cn(
-                "mb-1",
+                "mb-1 text-body",
                 expandable && !isExpanded && "line-clamp-3"
               )}
             >
-              {showOriginal ? story.storyOriginal : story.storyEnglish}
+              {showOriginal ? story.storyOriginal : story.story}
             </p>
             {expandable && !isExpanded && (
               <div className="mb-2">
@@ -107,7 +114,7 @@ const StoryCard = ({ story, className, expandable = true }: StoryCardProps) => {
                     eventCategory: "community-stories",
                   }}
                 >
-                  {t("page-10-year-stories-read-more")}
+                  {t("read-more")}
                 </Button>
               </div>
             )}
@@ -116,9 +123,7 @@ const StoryCard = ({ story, className, expandable = true }: StoryCardProps) => {
           {hasOriginal && (
             <div>
               <p className="text-xs text-body-medium">
-                {showOriginal
-                  ? t("page-10-year-stories-original-language")
-                  : t("page-10-year-stories-english-translation")}
+                {showOriginal ? t("original-language") : t("translation")}
               </p>
               <Button
                 onClick={handleFlip}
@@ -130,17 +135,17 @@ const StoryCard = ({ story, className, expandable = true }: StoryCardProps) => {
                   eventCategory: "community-stories",
                 }}
               >
-                {showOriginal
-                  ? t("page-10-year-stories-show-english")
-                  : t("page-10-year-stories-show-original")}
+                {showOriginal ? t("show-translation") : t("show-original")}
               </Button>
             </div>
           )}
 
-          <p className="mt-2 text-sm text-body-medium">{story.date}</p>
+          {showDate && (
+            <p className="mt-2 text-sm text-body-medium">{story.date}</p>
+          )}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 

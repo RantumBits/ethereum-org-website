@@ -2,7 +2,7 @@
 
 import { type MouseEvent, useMemo, useRef, useState } from "react"
 import { geoMercator, geoPath } from "d3-geo"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { feature } from "topojson-client"
 
 import { numberFormat } from "@/lib/utils/numbers"
@@ -11,8 +11,6 @@ import { STORIES_ADOPTION_MAX, storiesAdoption } from "@/data/storiesAdoption"
 
 import topology from "./countries-110m.json"
 import { ISO_NUMERIC_TO_ALPHA2 } from "./isoNumericToAlpha2"
-
-import { useTranslation } from "@/hooks/useTranslation"
 
 const MAP_ID = "stories-adoption-map"
 
@@ -101,7 +99,7 @@ type TooltipState = {
 }
 
 const WorldMap = () => {
-  const { t } = useTranslation("page-stories")
+  const t = useTranslations("page-stories")
   const locale = useLocale()
   const containerRef = useRef<HTMLDivElement>(null)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)

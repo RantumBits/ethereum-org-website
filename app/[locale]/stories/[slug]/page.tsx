@@ -6,9 +6,10 @@ import I18nProvider from "@/components/I18nProvider"
 import mdComponents from "@/components/MdComponents"
 
 import { dateToString } from "@/lib/utils/date"
+import { getStorySlugs } from "@/lib/utils/md"
 import { getRequiredNamespacesForPage } from "@/lib/utils/translations"
 
-import { getStorySlugs } from "../utils"
+import SlugJsonLD from "../../[...slug]/page-jsonld"
 
 import { componentsMapping, TutorialLayout } from "@/layouts"
 import { getPageData } from "@/lib/md/data"
@@ -54,19 +55,27 @@ const StoryPage = async (props: {
   const messages = pick(allMessages, requiredNamespaces)
 
   return (
-    <I18nProvider locale={locale} messages={messages}>
-      <TutorialLayout
+    <>
+      <SlugJsonLD
+        locale={locale}
         slug={fullSlug}
         frontmatter={frontmatter}
-        tocItems={tocItems}
-        lastEditLocaleTimestamp={lastEditLocaleTimestamp}
-        contentNotTranslated={!isTranslated}
         contributors={contributors}
-        timeToRead={Math.round(timeToRead.minutes)}
-      >
-        {content}
-      </TutorialLayout>
-    </I18nProvider>
+      />
+      <I18nProvider locale={locale} messages={messages}>
+        <TutorialLayout
+          slug={fullSlug}
+          frontmatter={frontmatter}
+          tocItems={tocItems}
+          lastEditLocaleTimestamp={lastEditLocaleTimestamp}
+          contentNotTranslated={!isTranslated}
+          contributors={contributors}
+          timeToRead={Math.round(timeToRead.minutes)}
+        >
+          {content}
+        </TutorialLayout>
+      </I18nProvider>
+    </>
   )
 }
 
@@ -79,6 +88,8 @@ export async function generateMetadata(props: {
   params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
   const { locale, slug } = await props.params
+
+  setRequestLocale(locale)
 
   return await getMdMetadata({
     locale,
